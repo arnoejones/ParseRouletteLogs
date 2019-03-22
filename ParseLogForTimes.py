@@ -27,58 +27,65 @@ time_differences = []
 
 files_read = []
 
+
 def create_empty_folder(folder_name):
     if not os.path.exists(folder_name):
         print("creating", folder_name)
         os.makedirs(folder_name)
 
+
 outliers = []
+
+
 def detect_outlier(data_1, date, time):
     threshold = 3
-    mean_1= np.mean(data_1)
+    mean_1 = np.mean(data_1)
     std_1 = np.std(data_1)
 
     for y in data_1:
-        z_score = (y-mean_1)/std_1
+        z_score = (y - mean_1) / std_1
         if np.abs(z_score) > threshold:
             outliers.append(y)
     return outliers
 
+
 def load_engine(raw_logs_location, logs_results_location):
+    # for filename in os.listdir(raw_logs_location):
+    files = (file for file in os.listdir(raw_logs_location) if os.path.isfile(os.path.join(raw_logs_location, file)))
+    for filename in files:
+        files_read.append(filename)
+        print(filename)
+        old = '00:00:00.000'
+        temp_list = []
+        with open(raw_logs_location + '/' + filename) as f:
+            fileContents = f.read()
+            counter = 0
+            matches = re.findall(pattern, fileContents, re.MULTILINE)
 
-    for filename in os.listdir(raw_logs_location):
-            files_read.append(filename)
-            print(filename)
-            old = '00:00:00.000'
-            temp_list = []
-            with open(raw_logs_location + '/' + filename) as f:
-                fileContents = f.read()
-                counter = 0
-                matches = re.findall(pattern, fileContents, re.MULTILINE)
+            for matchNum, match in enumerate(matches):
+                log_entry_date = matches[counter + 0][1]
+                log_entry_time = matches[counter + 1][1]
+                game_event_timestamp = matches[counter + 2][0]
 
-                for matchNum, match in enumerate(matches):
-                    log_entry_date = matches[counter + 0][1]
-                    log_entry_time = matches[counter + 1][1]
-                    game_event_timestamp = matches[counter + 2][0]
+                new = game_event_timestamp
+                deltaT = datetime.strptime(new, timeFormat) - datetime.strptime(old, timeFormat)
 
-                    new = game_event_timestamp
-                    deltaT = datetime.strptime(new, timeFormat) - datetime.strptime(old, timeFormat)
+                deltaTinSeconds = deltaT.total_seconds()
 
-                    deltaTinSeconds = deltaT.total_seconds()
+                old = new
+                temp_list.append([filename, log_entry_date, log_entry_time, deltaTinSeconds])
 
-                    old = new
-                    temp_list.append([filename, log_entry_date, log_entry_time, deltaTinSeconds])
-
-                    if matchNum < len(matches) / 3 - 1:  # 3 elements per match -1 for index out of range
-                        counter += 3
-                    else:
-                        for i in range(2):
-                            try:
-                                temp_list.pop(0)  # delete the entry that subtracts current time from 0, as that's meaningless.
-                            except IndexError:
-                                print("Not enough game states to calculate (requires at least 2 complete game cycles.)")
-                        break
-                time_differences.append(temp_list)
+                if matchNum < len(matches) / 3 - 1:  # 3 elements per match -1 for index out of range
+                    counter += 3
+                else:
+                    for i in range(2):
+                        try:
+                            temp_list.pop(
+                                0)  # delete the entry that subtracts current time from 0, as that's meaningless.
+                        except IndexError:
+                            print("Not enough game states to calculate (requires at least 2 complete game cycles.)")
+                    break
+            time_differences.append(temp_list)
 
     df = pd.DataFrame(item for sublist in time_differences for item in sublist)  # convert list of lists into dataframe
 
@@ -171,7 +178,7 @@ while True:
             'STANDARD DEVIATION: {}\n'
             'SAMPLE COUNT: {}'.format(max_seconds,
                                       min_seconds,
-                                      sum_elapsed , ( "(" + str("{0:.2f}".format(sum_elapsed/3600)) + " Hours)"),
+                                      sum_elapsed, ("(" + str("{0:.2f}".format(sum_elapsed / 3600)) + " Hours)"),
                                       mean_seconds,
                                       std_deviation,
                                       cnt_samples))

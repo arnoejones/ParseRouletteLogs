@@ -48,7 +48,7 @@ def frequency_chart(hits):
 
 layout = [
     [sg.Text('Find the Frequency of Hit Numbers, up to 500', size=(45, 1), font=("Helvetica", 20), text_color='blue')],
-    [sg.Text('Path to Roulette logs:', size =(40,1)), sg.InputText(r'\\USNVR-W1005006\PublicShare\RouletteLogs', key='_LOGSDEST_', do_not_clear=True)],
+    [sg.Text('Path to Roulette logs:', size =(40,1)), sg.InputText(r'\\USNVR-W1005006\PublicShare\RouletteLogs\Last_500_Win_History', key='_LOGSDEST_', do_not_clear=True)],
     [sg.Text('Hit Count Summary: ', size=(15, 1)), sg.Multiline(key='_SUMMARY_1', size=(20, 14)), sg.Multiline(key='_SUMMARY_2', size=(20, 14)), sg.Multiline(key='_SUMMARY_3', size=(20, 14))],
     [sg.Submit('Create Stats File'), sg.Exit()]
 ]
@@ -68,7 +68,7 @@ while True:
         window.FindElement('_SUMMARY_3').Update(df_results[2])
 window.Close()
 
-
-if __name__ == "__main__":
-    path = r'\\USNVR-W1005006\PublicShare\RouletteLogs'
+#
+# if __name__ == "__main__":
+#     path = r'\\USNVR-W1005006\PublicShare\RouletteLogs'
 
